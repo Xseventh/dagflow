@@ -2,8 +2,9 @@
 // Created by seventh on 2020/11/16.
 //
 
-#ifndef AIOLOS_EXPERIMENT_PROJECT_EXPR_007_COMMON_TEMPLATE_HELPER_IMPL_H_
-#define AIOLOS_EXPERIMENT_PROJECT_EXPR_007_COMMON_TEMPLATE_HELPER_IMPL_H_
+#ifndef DAGFLOW_COMMON_TEMPLATE_HELPER_IMPL_H_
+#define DAGFLOW_COMMON_TEMPLATE_HELPER_IMPL_H_
+#include <type_traits>
 #include "template_helper.h"
 template<template<typename ...> class C, typename... T0, typename... T1, typename... Args>
 struct concat<C<T0...>, C<T1...>, Args...> {
@@ -31,4 +32,4 @@ template<typename T>
 struct tag {
     using type = T;
 };
-#endif //AIOLOS_EXPERIMENT_PROJECT_EXPR_007_COMMON_TEMPLATE_HELPER_IMPL_H_
+#endif //DAGFLOW_COMMON_TEMPLATE_HELPER_IMPL_H_
