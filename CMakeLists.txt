@@ -2,5 +2,10 @@ cmake_minimum_required(VERSION 3.12)
 project(dagflow)
 
 set(CMAKE_CXX_STANDARD 17)
-
+file(GLOB_RECURSE src ./*.cpp ./*.h)
+include_directories(..)
 add_executable(template_helper_unittest common/template_helper_unittest.cpp)
+add_executable(data_manager_unittest dagflow/data_manager_unittest.cpp)
+add_executable(node_unittest dagflow/node_unittest.cpp)
+add_executable(dagflow ${src})
+add_executable(test test.cpp)
