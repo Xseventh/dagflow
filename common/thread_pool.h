@@ -4,6 +4,7 @@
 
 #ifndef DAGFLOW_COMMON_ThreadPool_H_
 #define DAGFLOW_COMMON_ThreadPool_H_
+
 #include <atomic>
 #include <functional>
 #include <future>
@@ -13,21 +14,31 @@
 #include <vector>
 
 #include "lock_queue.h"
-namespace dagflow {
-namespace common {
+
+namespace dagflow::common {
 
 class ThreadPool {
 
-  public:
+public:
 
     ThreadPool() { this->init(); }
-    ThreadPool(int nThreads) {
+
+    explicit ThreadPool(size_t nThreads) {
         this->init();
         this->resize(nThreads);
     }
 
+    // deleted
+    ThreadPool(const ThreadPool &) = delete;
+
+    ThreadPool(ThreadPool &&) = delete;
+
+    ThreadPool &operator=(const ThreadPool &) = delete;
+
+    ThreadPool &operator=(ThreadPool &&) = delete;
+
     void init() {
-        this->nWaiting = 0;
+        this->nWorking = 0;
         this->isStop = false;
         this->isDone = false;
     }
@@ -38,26 +49,27 @@ class ThreadPool {
     }
 
     // get the number of running threads in the pool
-    int size() { return static_cast<int>(this->threads.size()); }
+    size_t size() { return this->threads.size(); }
 
-    std::thread &get_thread(int i) { return *this->threads[i]; }
+    std::thread &get_thread(size_t i) { return *this->threads[i]; }
 
     // change the number of threads in the pool
     // should be called from one thread, otherwise be careful to not interleave, also with this->stop()
     // nThreads must be >= 0
-    void resize(int nThreads) {
+    void resize(size_t nThreads) {
         if (!this->isStop && !this->isDone) {
-            int oldNThreads = static_cast<int>(this->threads.size());
+            size_t oldNThreads = this->threads.size();
             if (oldNThreads <= nThreads) {  // if the number of threads is increased
+                this->nWorking.fetch_add(nThreads - oldNThreads);
                 this->threads.resize(nThreads);
                 this->flags.resize(nThreads);
 
-                for (int i = oldNThreads; i < nThreads; ++i) {
+                for (size_t i = oldNThreads; i < nThreads; ++i) {
                     this->flags[i] = std::make_shared<std::atomic<bool>>(false);
                     this->set_thread(i);
                 }
             } else {  // the number of threads is decreased
-                for (int i = oldNThreads - 1; i >= nThreads; --i) {
+                for (size_t i = oldNThreads - 1; i >= nThreads; --i) {
                     *this->flags[i] = true;  // this thread will finish
                     this->threads[i]->detach();
                 }
@@ -67,7 +79,8 @@ class ThreadPool {
                     this->cv.notify_all();
                 }
                 this->threads.resize(nThreads);  // safe to delete because the threads are detached
-                this->flags.resize(nThreads);  // safe to delete because the threads have copies of shared_ptr of the flags, not originals
+                this->flags.resize(
+                        nThreads);  // safe to delete because the threads have copies of shared_ptr of the flags, not originals
             }
         }
     }
@@ -99,7 +112,7 @@ class ThreadPool {
             if (this->isStop)
                 return;
             this->isStop = true;
-            for (int i = 0, n = this->size(); i < n; ++i) {
+            for (size_t i = 0, n = this->size(); i < n; ++i) {
                 *this->flags[i] = true;  // command the threads to stop
             }
             this->clear_queue();  // empty the queue
@@ -112,9 +125,9 @@ class ThreadPool {
             std::lock_guard<std::mutex> lock(this->mutex);
             this->cv.notify_all();  // stop all waiting threads
         }
-        for (int i = 0; i < static_cast<int>(this->threads.size()); ++i) {  // wait for the computing threads to finish
-            if (this->threads[i]->joinable())
-                this->threads[i]->join();
+        for (auto &thread : this->threads) {  // wait for the computing threads to finish
+            if (thread->joinable())
+                thread->join();
         }
         // if there were no threads in the pool but some functors in the queue, the functors are not deleted by the threads
         // therefore delete them here
@@ -151,13 +164,7 @@ class ThreadPool {
         return pck->get_future();
     }
 
-  private:
-
-    // deleted
-    ThreadPool(const ThreadPool &) = delete;
-    ThreadPool(ThreadPool &&) = delete;
-    ThreadPool &operator=(const ThreadPool &) = delete;
-    ThreadPool &operator=(ThreadPool &&) = delete;
+private:
 
     void set_thread(int i) {
         auto f = [this, i, flag(this->flags[i])/* a copy of the shared ptr to the flag */]() {
@@ -176,30 +183,33 @@ class ThreadPool {
                 }
                 // the queue is empty here, wait for the next command
                 std::unique_lock<std::mutex> lock(this->mutex);
-                ++this->nWaiting;
+                --this->nWorking;
+                if (this->isDone && this->nWorking == 0) {
+                    cv.notify_all();
+                    return;
+                }
                 this->cv.wait(lock, [this, &_f, &isPop, &_flag]() {
                     isPop = this->mTaskQueue.pop(_f);
-                    return isPop || this->isDone || _flag;
+                    return isPop || (this->isDone && this->nWorking == 0) || _flag;
                 });
-                --this->nWaiting;
                 if (!isPop)
                     return;  // if the queue is empty and this->isDone == true or *flag then return
+                ++this->nWorking;
             }
         };
-        this->threads[i].reset(new std::thread(f)); // compiler may not support std::make_unique()
+        this->threads[i] = std::make_unique<std::thread>(f);
     }
 
     std::vector<std::unique_ptr<std::thread>> threads;
     std::vector<std::shared_ptr<std::atomic<bool>>> flags;
     LockQueue<std::function<void(int id)> *> mTaskQueue;
-    std::atomic<bool> isDone;
-    std::atomic<bool> isStop;
-    std::atomic<int> nWaiting;  // how many threads are waiting
+    std::atomic<bool> isDone{};
+    std::atomic<bool> isStop{};
+    std::atomic<size_t> nWorking{};  // how many threads are waiting
 
     std::mutex mutex;
     std::condition_variable cv;
 };
 
-}
 }
 #endif //DAGFLOW_COMMON_ThreadPool_H_
