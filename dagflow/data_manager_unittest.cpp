@@ -6,10 +6,10 @@
 #include "data_manager.h"
 
 int main() {
-    dagflow::DataManager manager;
+    DataManager manager;
 
-    size_t id1;
-    std::shared_ptr<std::shared_ptr<int>> pp_int1 = manager.NewDataPtr<int>(id1);
+    std::shared_ptr<std::shared_ptr<int>> pp_int1;
+    int id1 = manager.NewDataPtr<int>(pp_int1);
     *pp_int1 = std::make_shared<int>(10);
 
     std::shared_ptr<std::shared_ptr<int>> pp_int2;

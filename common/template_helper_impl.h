@@ -4,15 +4,11 @@
 
 #ifndef DAGFLOW_COMMON_TEMPLATE_HELPER_IMPL_H_
 #define DAGFLOW_COMMON_TEMPLATE_HELPER_IMPL_H_
-
 #include <type_traits>
 #include "template_helper.h"
-
-namespace dagflow::common {
-
 template<template<typename ...> class C, typename... T0, typename... T1, typename... Args>
 struct concat<C<T0...>, C<T1...>, Args...> {
-    using type = std::conditional_t<(sizeof...(Args) > 0), concat_t < C<T0..., T1...>, Args...>, C<T0..., T1...>>;
+    using type = std::conditional_t<(sizeof...(Args) > 0), concat_t<C<T0..., T1...>, Args...>, C<T0..., T1...>>;
 };
 
 template<template<typename ...> class C, typename... Args>
@@ -23,8 +19,8 @@ struct concat<C<Args...>> {
 template<template<typename...> class C, typename T, typename... Args>
 struct remove_void<C<T, Args...>> {
     using type = std::conditional_t<std::is_same_v<T, void>,
-            remove_void_t < C<Args...>>,
-    concat_t <C<T>, remove_void_t<C<Args...>>>>;
+                                    remove_void_t<C<Args...>>,
+                                    concat_t<C<T>, remove_void_t<C<Args...>>>>;
 };
 
 template<template<typename...> class C>
@@ -36,6 +32,4 @@ template<typename T>
 struct tag {
     using type = T;
 };
-
-}
 #endif //DAGFLOW_COMMON_TEMPLATE_HELPER_IMPL_H_
