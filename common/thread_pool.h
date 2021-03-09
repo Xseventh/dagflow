@@ -193,7 +193,7 @@ private:
                     return isPop || (this->isDone && this->nWorking == 0) || _flag;
                 });
                 if (!isPop)
-                    return;  // if the queue is empty and this->isDone == true or *flag then return
+                    return;  // if the queue is empty and (this->isDone && this->nWorking == 0) or *flag then return
                 ++this->nWorking;
             }
         };
