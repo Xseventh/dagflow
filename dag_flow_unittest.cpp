@@ -31,12 +31,13 @@ void funcC(const std::shared_ptr<int> &data1,
 
 int main() {
     dagflow::DagRunner<int, double, std::string> dagRunner;
-    auto input_data = dagRunner.m_source_data;
+
+    dagflow::DagData<int, double, std::string> input_data = dagRunner.m_source_data;
     dagflow::DagData<int> data_int = input_data.Get<0>();
     dagflow::DagData<int> funA_result = data_int.operator>>= <int>(funcA);
     dagflow::DagData<double> funB_result = funA_result.operator>>= <double>(funcB);
-    (funA_result | funB_result).operator>>=<>(funcC);
-    (funA_result | funB_result).operator>>=<>(funcC);
+    (funA_result | funB_result).operator>>=(funcC);
+    (funA_result | funB_result).operator>>=(funcC);
     dagRunner.Submit(std::make_unique<int>(1), std::make_unique<double>(2), std::make_unique<std::string>("3"));
     return 0;
 }
