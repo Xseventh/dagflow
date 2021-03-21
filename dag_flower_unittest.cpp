@@ -20,13 +20,14 @@ void food2d(const std::shared_ptr<double> &d1,
     d2 = std::make_shared<double>(*d1 * 2);
 }
 
-void fooddd(const std::shared_ptr<double> &d1,
+void foodddd(const std::shared_ptr<double> &d1,
             const std::shared_ptr<double> &d2,
             const std::shared_ptr<double> &d3,
-            std::shared_ptr<int> &d4) {
+            const std::shared_ptr<double> &d4,
+            std::shared_ptr<int> &i4) {
     std::lock_guard _(print_mutex);
     std::cout << "fooddd thread_id : " << std::this_thread::get_id() << std::endl;
-    d4 = std::make_shared<int>(*d1 + *d2 + *d3);
+    i4 = std::make_shared<int>(*d1 + *d2 + *d3 + *d4);
 }
 
 class Void{};
@@ -44,20 +45,20 @@ void fooprinti(const std::shared_ptr<int> &d1,
 }
 
 int main() {
-    dagflow::DagFlowerInfo<int> dag_info;
-    auto input_data = dag_info.GetInputData();
-    auto d1 = input_data.Flow<double>(fooi2d).Flow<double>(food2d);
-    auto d2 = input_data.Flow<double>(fooi2d).Flow<double>(food2d).Flow<double>(food2d);
-    auto d3 = input_data.Flow<double>(fooi2d).Flow<double>(food2d).Flow<double>(food2d).Flow<double>(food2d);
-    auto i1 = (d1 | d2 | d3).Flow<int>(fooddd);
+    dagflow::DagFlowerInfo<int, double> dag_info;
+    dagflow::DagData<int, double> input_data = dag_info.GetInputData();
+    dagflow::DagData<double> d1 = input_data.Get<0>().Flow<double>(fooi2d).Flow<double>(food2d);
+    dagflow::DagData<double> d2 = input_data.Get<0>().Flow<double>(fooi2d).Flow<double>(food2d).Flow<double>(food2d);
+    dagflow::DagData<double> d3 = input_data.Get<0>().Flow<double>(fooi2d).Flow<double>(food2d).Flow<double>(food2d).Flow<double>(food2d);
+    dagflow::DagData<int> i1 = (d1 | d2 | d3 | input_data.Get<1>()).Flow<int>(foodddd);
     i1.Flow<Void>(fooprinti);
     d1.Flow<Void>(fooprintd);
     d2.Flow<Void>(fooprintd);
     d3.Flow<Void>(fooprintd);
 
-    dagflow::DagFlower<int> dagflower(std::move(dag_info));
-    dagflower.Submit(new int(2));
+    dagflow::DagFlower<int, double> dagflower(std::move(dag_info));
+    dagflower.Submit(new int(2), new double(10));
 
-    dagflower.Submit(std::make_unique<int>(1));
+    dagflower.Submit(std::make_unique<int>(1), new double(10));
 
 }
