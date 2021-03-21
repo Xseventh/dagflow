@@ -3,8 +3,8 @@
 //
 #include <iostream>
 #include <string>
-#include "node.h"
-#include "data_manager.h"
+
+#include "dagflow/dagflower/executor/node/node.h"
 
 void func(const std::shared_ptr<const int> &a,
           const std::shared_ptr<const double> &b,
@@ -18,6 +18,7 @@ void func(const std::shared_ptr<const int> &a,
 }
 
 int main() {
+    dagflow::common::ThreadPool thread_pool(1);
     std::shared_ptr<std::shared_ptr<const int>> a = std::make_shared<std::shared_ptr<const int>>(
             std::make_shared<const int>(10));
     std::shared_ptr<std::shared_ptr<const double>> b = std::make_shared<std::shared_ptr<const double>>(
@@ -26,7 +27,7 @@ int main() {
     std::shared_ptr<std::shared_ptr<int>> d = std::make_shared<std::shared_ptr<int>>();
     std::shared_ptr<std::shared_ptr<std::string>> e = std::make_shared<std::shared_ptr<std::string>>();
 
-    dagflow::Node<std::tuple<const int, const double>, std::tuple<double, int, std::string>> node(func, a, b, c, d, e);
+    dagflow::detail::Node<std::tuple<const int, const double>, std::tuple<double, int, std::string>> node(func, a, b, c, d, e, 0, thread_pool);
     node.Run();
     std::cout << "result c = " << **c << std::endl
               << "result d = " << **d << std::endl
