@@ -16,7 +16,7 @@ namespace dagflow {
 
 template<typename... DataType>
 template<typename ...OutputType>
-DagData<DataType..., OutputType...> DagData<DataType...>::operator|(const DagData<OutputType...> &dag_data) noexcept {
+DagData<DataType..., OutputType...> DagData<DataType...>::operator|(const DagData<OutputType...> &dag_data) const noexcept {
 
     std::array<size_t, this->DataSize + dag_data.DataSize> data_id_list, node_id_list;
 
@@ -32,7 +32,7 @@ DagData<DataType..., OutputType...> DagData<DataType...>::operator|(const DagDat
 template<typename... DataType>
 template<typename... OutputType>
 DagData<OutputType...>
-DagData<DataType...>::Flow(const common::block_deduction_t<SyncFuncType<OutputType...>> &function) noexcept {
+DagData<DataType...>::Flow(const common::block_deduction_t<SyncFuncType<OutputType...>> &function) const noexcept {
     return mr_dag_flower_info.AddNodeInfo(function, m_data_id_list, m_node_id_list,
                                           (std::tuple<DataType...> *) nullptr, (std::tuple<OutputType...> *) nullptr);
 }

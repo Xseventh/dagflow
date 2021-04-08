@@ -28,10 +28,10 @@ public:
     static constexpr size_t DataSize = sizeof...(DataType);
 
     template<typename ...OutputType>
-    DagData<OutputType...> Flow(const common::block_deduction_t<SyncFuncType<OutputType...>> &function) noexcept;
+    DagData<OutputType...> Flow(const common::block_deduction_t<SyncFuncType<OutputType...>> &function) const noexcept;
 
     template<typename ...OutputType>
-    DagData<DataType..., OutputType...> operator|(const DagData<OutputType...> &) noexcept;
+    DagData<DataType..., OutputType...> operator|(const DagData<OutputType...> &) const noexcept;
 
     template<size_t idx>
     DagData<common::nth_element_t<idx, DataType...>> Get();
