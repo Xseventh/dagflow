@@ -56,6 +56,17 @@ DagData<DataType...>::DagData(const std::array<size_t, DataSize> &data_id_list,
                               detail::IDagFlowerInfo &dag_flower_info)
         : m_data_id_list(data_id_list), m_node_id_list(node_id_list), mr_dag_flower_info(dag_flower_info) {}
 
+
+DagData<>::DagData(const std::array<size_t, DataSize> &data_id_list, const size_t &node_id,
+                   detail::IDagFlowerInfo &dag_flower_info)
+        : m_data_id_list(data_id_list), m_node_id_list(),
+          mr_dag_flower_info(dag_flower_info) {}
+
+DagData<>::DagData(const std::array<size_t, DataSize> &data_id_list,
+                   const std::array<size_t, DataSize> &node_id_list,
+                   detail::IDagFlowerInfo &dag_flower_info)
+        : m_data_id_list(data_id_list), m_node_id_list(node_id_list), mr_dag_flower_info(dag_flower_info) {}
+
 }
 
 #endif //DAGFLOW_DAG_DATA_H

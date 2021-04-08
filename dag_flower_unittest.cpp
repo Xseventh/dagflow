@@ -32,14 +32,12 @@ void foodddd(const std::shared_ptr<double> &d1,
 
 class Void{};
 
-void fooprintd(const std::shared_ptr<double> &d1,
-               std::shared_ptr<Void> &) {
+void fooprintd(const std::shared_ptr<double> &d1) {
     std::lock_guard _(print_mutex);
     std::cout << "double : " << *d1 << std::endl;
 }
 
-void fooprinti(const std::shared_ptr<int> &d1,
-               std::shared_ptr<Void> &) {
+void fooprinti(const std::shared_ptr<int> &d1) {
     std::lock_guard _(print_mutex);
     std::cout << "int : " << *d1 << std::endl;
 }
@@ -51,10 +49,10 @@ int main() {
     dagflow::DagData<double> d2 = input_data.Get<0>().Flow<double>(fooi2d).Flow<double>(food2d).Flow<double>(food2d);
     dagflow::DagData<double> d3 = input_data.Get<0>().Flow<double>(fooi2d).Flow<double>(food2d).Flow<double>(food2d).Flow<double>(food2d);
     dagflow::DagData<int> i1 = (d1 | d2 | d3 | input_data.Get<1>()).Flow<int>(foodddd);
-    i1.Flow<Void>(fooprinti);
-    d1.Flow<Void>(fooprintd);
-    d2.Flow<Void>(fooprintd);
-    d3.Flow<Void>(fooprintd);
+    i1.Flow<>(fooprinti);
+    d1.Flow<>(fooprintd);
+    d2.Flow<>(fooprintd);
+    d3.Flow<>(fooprintd);
 
     dagflow::DagFlower<int, double> dagflower(std::move(dag_info));
     dagflower.Submit(new int(2), new double(10));
