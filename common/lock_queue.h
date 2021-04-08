@@ -24,7 +24,7 @@ public:
         std::lock_guard<std::mutex> lock(this->mutex);
         if (this->q.empty())
             return false;
-        v = this->q.front();
+        v = std::move(this->q.front());
         this->q.pop();
         return true;
     }
