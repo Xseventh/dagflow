@@ -123,7 +123,7 @@ public:
         }
         {
             std::lock_guard<std::mutex> lock(this->mutex);
-            this->cv.notify_one();  // stop all waiting threads
+            this->cv.notify_all();  // stop all waiting threads
         }
         for (auto &thread : this->threads) {  // wait for the computing threads to finish
             if (thread->joinable())
@@ -192,8 +192,9 @@ private:
                     isPop = this->mTaskQueue.pop(_f);
                     return isPop || (this->isDone && this->nWorking == 0) || _flag;
                 });
-                if (!isPop)
+                if (!isPop) {
                     return;  // if the queue is empty and (this->isDone && this->nWorking == 0) or *flag then return
+                }
                 ++this->nWorking;
             }
         };
