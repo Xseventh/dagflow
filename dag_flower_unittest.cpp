@@ -2,6 +2,7 @@
 // Created by seventh on 2021/3/12.
 //
 #include <iostream>
+#include <chrono>
 #include <cassert>
 #include "dagflow/dagflower/dag_flower.h"
 
@@ -50,6 +51,12 @@ int main() {
      * 需要将三个vector分别进行排序
      * 然后将三个vector的结果进行两两卷积
      * 最后将三个vector两两卷积后的结果相加
+     *
+     *  Dag结构
+     *  Data1 - > sort -> Sorted Data1
+     *  Data2 - > sort -> Sorted Data2
+     *  Data3 - > sort -> Sorted Data3
+     *
      */
     dagflow::DagFlowerInfo<std::vector<int>, std::vector<int>, std::vector<int>> dag_info; // 定义dagInfo,Dag图的信息都在Info里
     // 以下建立Info过程
@@ -81,49 +88,51 @@ int main() {
     //dag_info 建立完成
 
     // 通过 info 构建出dag_flower
-    dagflow::DagFlower<std::vector<int>, std::vector<int>, std::vector<int>> dag_flower(std::move(dag_info)); // 目前还没有写info的拷贝构造，所以只能先用move
+    dagflow::DagFlower<std::vector<int>, std::vector<int>, std::vector<int>> dag_flower1(dag_info);
+    dagflow::DagFlower<std::vector<int>, std::vector<int>, std::vector<int>> dag_flower2(dag_info);
 
-    //以下是往dag_flower中Submit数据，提交6次数据，这6次数据在执行过程中互不干扰
+    // 以下是往dag_flower1和dag_flower2中Submit数据，提交6次数据，这6次数据在执行过程中逻辑互不干扰
+    // dag_flower1的提交数据执行时共享一个线程池，dag_flower2的提交数据执行时共享另一个线程池
     {
         auto input_data0 = std::make_unique<std::vector<int>>(std::vector{1, 2, 3, 4});
         auto input_data1 = std::make_unique<std::vector<int>>(std::vector{1, 2, 3, 4});
         auto input_data2 = std::make_unique<std::vector<int>>(std::vector{1, 2, 3, 4});
-        dag_flower.Submit(std::move(input_data0), std::move(input_data1), std::move(input_data2));
+        dag_flower1.Submit(std::move(input_data0), std::move(input_data1), std::move(input_data2));
     }
 
     {
         auto input_data0 = std::make_unique<std::vector<int>>(std::vector{1, 1, 1, 1});
         auto input_data1 = std::make_unique<std::vector<int>>(std::vector{1, 1, 1, 1});
         auto input_data2 = std::make_unique<std::vector<int>>(std::vector{1, 1, 1, 1});
-        dag_flower.Submit(std::move(input_data0), std::move(input_data1), std::move(input_data2));
+        dag_flower1.Submit(std::move(input_data0), std::move(input_data1), std::move(input_data2));
     }
 
     {
         auto input_data0 = std::make_unique<std::vector<int>>(std::vector{1, 2, 3, 4});
         auto input_data1 = std::make_unique<std::vector<int>>(std::vector{1, 2, 3, 4});
         auto input_data2 = std::make_unique<std::vector<int>>(std::vector{1, 2, 3, 4});
-        dag_flower.Submit(std::move(input_data0), std::move(input_data1), std::move(input_data2));
+        dag_flower1.Submit(std::move(input_data0), std::move(input_data1), std::move(input_data2));
     }
 
     {
         auto input_data0 = std::make_unique<std::vector<int>>(std::vector{1, 1, 1, 1});
         auto input_data1 = std::make_unique<std::vector<int>>(std::vector{1, 1, 1, 1});
         auto input_data2 = std::make_unique<std::vector<int>>(std::vector{1, 1, 1, 1});
-        dag_flower.Submit(std::move(input_data0), std::move(input_data1), std::move(input_data2));
+        dag_flower2.Submit(std::move(input_data0), std::move(input_data1), std::move(input_data2));
     }
 
     {
         auto input_data0 = std::make_unique<std::vector<int>>(std::vector{1, 2, 3, 4});
         auto input_data1 = std::make_unique<std::vector<int>>(std::vector{1, 2, 3, 4});
         auto input_data2 = std::make_unique<std::vector<int>>(std::vector{1, 2, 3, 4});
-        dag_flower.Submit(std::move(input_data0), std::move(input_data1), std::move(input_data2));
+        dag_flower2.Submit(std::move(input_data0), std::move(input_data1), std::move(input_data2));
     }
 
     {
         auto input_data0 = std::make_unique<std::vector<int>>(std::vector{1, 1, 1, 1});
         auto input_data1 = std::make_unique<std::vector<int>>(std::vector{1, 1, 1, 1});
         auto input_data2 = std::make_unique<std::vector<int>>(std::vector{1, 1, 1, 1});
-        dag_flower.Submit(std::move(input_data0), std::move(input_data1), std::move(input_data2));
+        dag_flower2.Submit(std::move(input_data0), std::move(input_data1), std::move(input_data2));
     }
 
     return 0;

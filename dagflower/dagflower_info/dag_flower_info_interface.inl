@@ -20,6 +20,15 @@ namespace dagflow::detail {
 
 class IDagFlowerInfo {
 public:
+    IDagFlowerInfo() = default;
+
+    IDagFlowerInfo(const IDagFlowerInfo &dag_info) : m_data_id_generator(dag_info.m_data_id_generator) {
+        m_dag_executor_infos.reserve(dag_info.m_dag_executor_infos.size());
+        for (auto &executor_info : dag_info.m_dag_executor_infos) {
+            m_dag_executor_infos.emplace_back(executor_info->CopyDagExecutorInfo());
+        }
+    }
+
     template<typename... DataType, typename ...OutputType>
     DagData<OutputType...>
     AddNodeInfo(

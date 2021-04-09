@@ -5,8 +5,8 @@
 #ifndef DAGFLOW_DAG_FLOWER_H
 #define DAGFLOW_DAG_FLOWER_H
 
-#include "dagflow/dagflower/dagflower_info/dag_data.h"
 #include "dagflow/dagflower/dagflower_info/dag_flower_info.h"
+#include "dagflow/dagflower/dagflower_info/dag_data.h"
 #include "dagflow/dagflower/dag_flower_context.h"
 #include "dagflow/dagflower/executor/begin_node/begin_node.h"
 #include "dagflow/dagflower/executor/end_node/end_node.h"
@@ -31,7 +31,7 @@ struct DataPtr {
 template<typename... InputType>
 class DagFlower {
 public:
-    explicit DagFlower(DagFlowerInfo<InputType...> &&m_dag_info,
+    explicit DagFlower(DagFlowerInfo<InputType...> m_dag_info,
                        size_t thread_num = std::thread::hardware_concurrency())
             : m_thread_pool(thread_num),
               m_dag_info(std::move(m_dag_info)) {}

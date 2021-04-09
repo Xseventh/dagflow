@@ -30,10 +30,13 @@ public:
                                   m_dependent_node_id.end());
     }
 
+    virtual std::unique_ptr<IDagExecutorInfo>
+    CopyDagExecutorInfo() = 0;
+
     virtual std::unique_ptr<IDagExecutor>
     NewDagExecutor(DataManager &data_manager, common::ThreadPool &thread_pool) = 0;
 
-    virtual ~IDagExecutorInfo() = default;
+    virtual ~IDagExecutorInfo() {};
 
     std::vector<size_t> m_dependent_node_id;
 };

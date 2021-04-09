@@ -15,6 +15,17 @@ namespace dagflow::detail {
 template<typename T0, typename T1, typename T2, typename T3>
 class NodeInfoImpl;
 
+template<typename InputType, typename OutputType>
+struct NodeInfoAlias;
+
+template<typename... InputType, typename... OutputType>
+struct NodeInfoAlias<std::tuple<InputType...>, std::tuple<OutputType...>> {
+    using type = NodeInfoImpl<std::tuple<InputType...>, std::make_index_sequence<sizeof...(InputType)>, std::tuple<OutputType...>, std::make_index_sequence<sizeof...(OutputType)>>;
+};
+
+template<typename... Type>
+using NodeInfo = typename NodeInfoAlias<Type...>::type;
+
 template<typename ...InputType, size_t ...InputIndex, typename ...OutputType, size_t ...OutputIndex>
 class NodeInfoImpl<std::tuple<InputType...>, std::index_sequence<InputIndex...>, std::tuple<OutputType...>, std::index_sequence<OutputIndex...>>
         : public IDagExecutorInfo {
@@ -31,8 +42,16 @@ public:
               m_output_data_id(output_data_id),
               IDagExecutorInfo(dependent_node) {}
 
+    NodeInfoImpl(
+            const NodeInfoImpl<std::tuple<InputType...>, std::index_sequence<InputIndex...>, std::tuple<OutputType...>, std::index_sequence<OutputIndex...>> &) = default;
+
+    std::unique_ptr<IDagExecutorInfo>
+    CopyDagExecutorInfo() override {
+        return std::make_unique<NodeInfo<std::tuple<InputType...>, std::tuple<OutputType...>>>(*this);
+    }
+
     std::unique_ptr<IDagExecutor>
-    NewDagExecutor(DataManager &data_manager, common::ThreadPool& thread_pool) override {
+    NewDagExecutor(DataManager &data_manager, common::ThreadPool &thread_pool) override {
         return std::make_unique<Node<std::tuple<InputType...>, std::tuple<OutputType...>>>(
                 m_function,
                 data_manager.Get<common::nth_element_t<InputIndex, InputType...>>(m_input_data_id[InputIndex])...,
@@ -45,17 +64,6 @@ private:
     std::array<size_t, sizeof...(InputType)> m_input_data_id;
     std::array<size_t, sizeof...(OutputType)> m_output_data_id;
 };
-
-template<typename InputType, typename OutputType>
-struct NodeInfoAlias;
-
-template<typename... InputType, typename... OutputType>
-struct NodeInfoAlias<std::tuple<InputType...>, std::tuple<OutputType...>> {
-    using type = NodeInfoImpl<std::tuple<InputType...>, std::make_index_sequence<sizeof...(InputType)>, std::tuple<OutputType...>, std::make_index_sequence<sizeof...(OutputType)>>;
-};
-
-template<typename... Type>
-using NodeInfo = typename NodeInfoAlias<Type...>::type;
 
 }
 

@@ -16,7 +16,8 @@ namespace dagflow {
 
 template<typename... DataType>
 template<typename ...OutputType>
-DagData<DataType..., OutputType...> DagData<DataType...>::operator|(const DagData<OutputType...> &dag_data) const noexcept {
+DagData<DataType..., OutputType...>
+DagData<DataType...>::operator|(const DagData<OutputType...> &dag_data) const noexcept {
 
     std::array<size_t, this->DataSize + dag_data.DataSize> data_id_list, node_id_list;
 
@@ -32,14 +33,14 @@ DagData<DataType..., OutputType...> DagData<DataType...>::operator|(const DagDat
 template<typename... DataType>
 template<typename... OutputType>
 DagData<OutputType...>
-DagData<DataType...>::Flow(const common::block_deduction_t<SyncFuncType<OutputType...>> &function) const noexcept {
+DagData<DataType...>::Flow(const common::block_deduction_t <SyncFuncType<OutputType...>> &function) const noexcept {
     return mr_dag_flower_info.AddNodeInfo(function, m_data_id_list, m_node_id_list,
                                           (std::tuple<DataType...> *) nullptr, (std::tuple<OutputType...> *) nullptr);
 }
 
 template<typename... DataType>
 template<size_t idx>
-DagData<common::nth_element_t<idx, DataType...>> DagData<DataType...>::Get() {
+DagData <common::nth_element_t<idx, DataType...>> DagData<DataType...>::Get() {
     return DagData<common::nth_element_t<idx, DataType...>>({m_data_id_list[idx]}, {m_node_id_list[idx]},
                                                             mr_dag_flower_info);
 }
@@ -47,15 +48,23 @@ DagData<common::nth_element_t<idx, DataType...>> DagData<DataType...>::Get() {
 template<typename ...DataType>
 DagData<DataType...>::DagData(const std::array<size_t, DataSize> &data_id_list, const size_t &node_id,
                               detail::IDagFlowerInfo &dag_flower_info)
-        : m_data_id_list(data_id_list), m_node_id_list({((size_t) (DataType *) node_id)...}),
+        : m_data_id_list(data_id_list),
+          m_node_id_list({((size_t) (DataType *) node_id)...}),
           mr_dag_flower_info(dag_flower_info) {}
 
 template<typename ...DataType>
 DagData<DataType...>::DagData(const std::array<size_t, DataSize> &data_id_list,
                               const std::array<size_t, DataSize> &node_id_list,
                               detail::IDagFlowerInfo &dag_flower_info)
-        : m_data_id_list(data_id_list), m_node_id_list(node_id_list), mr_dag_flower_info(dag_flower_info) {}
+        : m_data_id_list(data_id_list),
+          m_node_id_list(node_id_list),
+          mr_dag_flower_info(dag_flower_info) {}
 
+template<typename ...DataType>
+DagData<DataType...>::DagData(const DagData<DataType...> &dag_data, detail::IDagFlowerInfo &dag_flower_info)
+        :m_data_id_list(dag_data.m_data_id_list),
+         m_node_id_list(dag_data.m_node_id_list),
+         mr_dag_flower_info(dag_flower_info) {}
 
 DagData<>::DagData(const std::array<size_t, DataSize> &data_id_list, const size_t &node_id,
                    detail::IDagFlowerInfo &dag_flower_info)
@@ -66,6 +75,12 @@ DagData<>::DagData(const std::array<size_t, DataSize> &data_id_list,
                    const std::array<size_t, DataSize> &node_id_list,
                    detail::IDagFlowerInfo &dag_flower_info)
         : m_data_id_list(data_id_list), m_node_id_list(node_id_list), mr_dag_flower_info(dag_flower_info) {}
+
+DagData<>::DagData(const DagData<> &dag_data, detail::IDagFlowerInfo &dag_flower_info)
+        : m_data_id_list(dag_data.m_data_id_list),
+          m_node_id_list(dag_data.m_node_id_list),
+          mr_dag_flower_info(dag_flower_info) {}
+
 
 }
 

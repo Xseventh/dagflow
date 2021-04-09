@@ -23,6 +23,14 @@ public:
             : IDagExecutorInfo(std::array<size_t, 0>{}),
               m_input_data_id(input_data_id) {}
 
+    BeginNodeInfoImpl(
+            const BeginNodeInfoImpl<std::tuple<InputType...>, std::index_sequence<InputIndex...>> &) = default;
+
+    std::unique_ptr<IDagExecutorInfo>
+    CopyDagExecutorInfo() override {
+        return std::make_unique<BeginNodeInfo<InputType...>>(*this);
+    }
+
     std::unique_ptr<IDagExecutor>
     NewDagExecutor(DataManager &data_manager, common::ThreadPool &thread_pool) override {
         return std::make_unique<BeginNode<InputType...>>(

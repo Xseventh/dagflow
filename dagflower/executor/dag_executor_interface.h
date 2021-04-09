@@ -28,7 +28,7 @@ public:
         return mp_dependent_on_executors.empty();
     }
 
-    virtual ~IDagExecutor() = default;
+    virtual ~IDagExecutor() {};
 
 protected:
 

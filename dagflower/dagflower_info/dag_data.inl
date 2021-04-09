@@ -53,6 +53,9 @@ private:
     DagData(const std::array<size_t, DataSize> &data_id_list, const std::array<size_t, DataSize> &node_id_list,
             detail::IDagFlowerInfo &dag_flower_info);
 
+    // for Info Copy Constructor
+    DagData(const DagData<DataType...>& dag_data, detail::IDagFlowerInfo &dag_flower_info);
+
     detail::IDagFlowerInfo &mr_dag_flower_info;
     const std::array<size_t, DataSize> m_data_id_list;
     const std::array<size_t, DataSize> m_node_id_list;
@@ -80,6 +83,9 @@ private:
 
     DagData(const std::array<size_t, DataSize> &data_id_list, const std::array<size_t, DataSize> &node_id_list,
             detail::IDagFlowerInfo &dag_flower_info);
+
+    // for Info Copy Constructor
+    DagData(const DagData<> &dag_data, detail::IDagFlowerInfo &dag_flower_info);
 
     detail::IDagFlowerInfo &mr_dag_flower_info;
     const std::array<size_t, DataSize> m_data_id_list;

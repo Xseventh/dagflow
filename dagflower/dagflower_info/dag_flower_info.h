@@ -15,9 +15,13 @@ namespace dagflow {
 template<typename... InputType>
 class DagFlowerInfo : public detail::IDagFlowerInfo {
 public:
-    DagFlowerInfo() : input_dag_data(AddInputNodeInfo()) {
+    DagFlowerInfo() : input_dag_data(AddInputNodeInfo()) {}
 
-    }
+    DagFlowerInfo(DagFlowerInfo<InputType...> &&dag_info)
+            : detail::IDagFlowerInfo(std::move(dag_info)), input_dag_data(std::move(dag_info.input_dag_data), *this) {}
+
+    DagFlowerInfo(const DagFlowerInfo<InputType...> &dag_info)
+            : detail::IDagFlowerInfo(dag_info), input_dag_data(dag_info.input_dag_data, *this) {}
 
     DagData<InputType...> GetInputData() const noexcept {
         return input_dag_data;
