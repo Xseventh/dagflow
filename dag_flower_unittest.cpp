@@ -51,19 +51,20 @@ int main() {
      * 需要将三个vector分别进行排序
      * 然后将三个vector的结果进行两两卷积
      * 最后将三个vector两两卷积后的结果相加
-     *
-     *  Dag结构
-     *  Data1 - > sort -> Sorted Data1
-     *  Data2 - > sort -> Sorted Data2
-     *  Data3 - > sort -> Sorted Data3
-     *
      */
-    dagflow::DagFlowerInfo<std::vector<int>, std::vector<int>, std::vector<int>> dag_info; // 定义dagInfo,Dag图的信息都在Info里
+    // 定义dagInfo，Dag图的信息都在Info里
+    // 这里的模板参数为输入参数，表示这个Dag接收的Input是三个vector<int>类型的对象
+    dagflow::DagFlowerInfo<std::vector<int>, std::vector<int>, std::vector<int>> dag_info;
+
     // 以下建立Info过程
+    // Get整个Dag的输入数据，通过这些数据间的依赖去定义执行流程
     dagflow::DagData<std::vector<int>, std::vector<int>, std::vector<int>> input_data = dag_info.GetInputData();
 
     // 将三个vector分别进行排序
     std::vector<dagflow::DagData<std::vector<int>>> sorted_vector_data;
+    // 这里的input_data代表三个vector<int>对象的数据，Get0表示取第一个数据，下面这三行代表将三个vector分别去执行排序
+    // 这里的DagData<InputType>::Flow<Type>的含义是将类型为InputType的数据，转换为Type类型的数据，这里的参数就是转换函数，将InputType转换为Type
+    // 输入输出类型可以有多个，没有限制，这里的例子里只展现了输出参数只有一个的情况
     sorted_vector_data.emplace_back(input_data.Get<0>().Flow<std::vector<int>>(VectorSort));
     sorted_vector_data.emplace_back(input_data.Get<1>().Flow<std::vector<int>>(VectorSort));
     sorted_vector_data.emplace_back(input_data.Get<2>().Flow<std::vector<int>>(VectorSort));
@@ -85,9 +86,10 @@ int main() {
 
     // Print显示三个vector的结果
     result_vector_data->Flow<>(VectorPrint);
-    //dag_info 建立完成
+    //dag_info 建立完成，这里的dag_info描述了三个vector<int>的对象被输入进来会经过怎样的流程去处理，这些执行流程会表现为一个Dag的形式
 
-    // 通过 info 构建出dag_flower
+    // 通过 info 构建出dag_flower，这里构建了两个独立的dag_flower
+    // dag_flower是一个执行器，由DagFlowerInfo构建出来，我们可以向dag_flower中Submit数据，dag_flower会按照拓扑关系去尽最大限度的去并行执行整体的流程
     dagflow::DagFlower<std::vector<int>, std::vector<int>, std::vector<int>> dag_flower1(dag_info);
     dagflow::DagFlower<std::vector<int>, std::vector<int>, std::vector<int>> dag_flower2(dag_info);
 
@@ -135,5 +137,6 @@ int main() {
         dag_flower2.Submit(std::move(input_data0), std::move(input_data1), std::move(input_data2));
     }
 
+    // dag_flower在析构时会等待任务执行完成，所以这里可以直接结束
     return 0;
 }
